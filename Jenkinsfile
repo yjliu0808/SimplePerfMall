@@ -1,6 +1,14 @@
 pipeline {
     agent any
 
+    parameters {
+        booleanParam(
+            name: 'GENERATE_REPORT',
+            defaultValue: false,
+            description: '是否生成 JMeter HTML 报告（建议关闭，降低内存占用）'
+        )
+    }
+
     environment {
         JMETER_HOME = '/athena/jmeter/apache-jmeter-5.5/bin'
         JMX_FILE = "${env.WORKSPACE}/SimplePerfMall.jmx"
@@ -12,23 +20,22 @@ pipeline {
     }
 
     stages {
-        stage('📦 打印 Jenkins 工作空间') {
+        stage('打印工作空间路径') {
             steps {
-                echo "当前 Jenkins 工作空间路径是：${env.WORKSPACE}"
+                echo "当前 Jenkins 工作空间路径：${env.WORKSPACE}"
             }
         }
 
-        stage('⏰ 生成报告目录变量') {
+        stage('生成报告目录变量') {
             steps {
                 script {
                     def timestamp = new Date().format("yyyy_MM_dd_HHmmss", TimeZone.getTimeZone('Asia/Shanghai'))
                     env.REPORT_DIR = "${env.WORKSPACE}/report_${timestamp}"
-                    echo "报告目录：${env.REPORT_DIR}"
                 }
             }
         }
 
-        stage('✅ 检查 JMX 文件') {
+        stage('检查 JMX 文件') {
             steps {
                 script {
                     if (!fileExists("${JMX_FILE}")) {
@@ -38,30 +45,32 @@ pipeline {
             }
         }
 
-        stage('🚀 执行 JMeter 测试（极限低内存优化）') {
+        stage('执行 JMeter 测试（极限低内存）') {
             steps {
                 sh """
                     export JVM_ARGS='-Xms64m -Xmx128m'
-                    ${JMETER_HOME}/jmeter -n \\
-                    -t ${JMX_FILE} \\
-                    -l ${RESULT_FILE}
+                    ${JMETER_HOME}/jmeter -n -t ${JMX_FILE} -l ${RESULT_FILE}
                 """
             }
         }
 
-        stage('📄 提示后续生成报告') {
+        stage('可选生成 HTML 报告') {
+            when {
+                expression { return params.GENERATE_REPORT }
+            }
             steps {
-                echo "✅ 测试结果保存在：${env.RESULT_FILE}"
-                echo "📁 报告目录（未生成 HTML 报告）预设为：${env.REPORT_DIR}"
-                echo "💡 如需生成报告，可手动执行："
-                echo "${JMETER_HOME}/jmeter -g ${env.RESULT_FILE} -o ${env.REPORT_DIR}"
+                sh """
+                    export JVM_ARGS='-Xms128m -Xmx256m'
+                    ${JMETER_HOME}/jmeter -g ${RESULT_FILE} -o ${REPORT_DIR}
+                """
+                echo "📊 HTML 报告生成成功：${env.REPORT_DIR}"
             }
         }
     }
 
     post {
         success {
-            echo '✅ 构建成功！'
+            echo '✅ 构建成功'
         }
         failure {
             echo '❌ 构建失败，请检查是否为内存不足或 JMX 脚本错误。'
