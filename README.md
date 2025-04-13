@@ -114,3 +114,15 @@ git push
 ```
 
 ==========若没有自动构建，jenkins：首次先手动构建。
+
+### 其他相关操作备注
+
+服务器命令：
+
+```
+jmeter -n -t D:\repository\SimplePerfMall\SimplePerfMall.jmx ^
+-l D:\repository\SimplePerfMall\result.jtl ^
+-e -o D:\repository\SimplePerfMall\report_2025_04_11
+
+```
+
