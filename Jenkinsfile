@@ -18,7 +18,7 @@ pipeline {
             }
         }
 
-        stage('⏰ 生成动态报告目录变量') {
+        stage('⏰ 生成报告目录变量') {
             steps {
                 script {
                     def timestamp = new Date().format("yyyy_MM_dd_HHmmss", TimeZone.getTimeZone('Asia/Shanghai'))
@@ -38,10 +38,10 @@ pipeline {
             }
         }
 
-        stage('🚀 执行 JMeter 测试（低内存优化）') {
+        stage('🚀 执行 JMeter 测试（极限低内存优化）') {
             steps {
                 sh """
-                    export JVM_ARGS='-Xms128m -Xmx384m'
+                    export JVM_ARGS='-Xms64m -Xmx128m'
                     ${JMETER_HOME}/jmeter -n \\
                     -t ${JMX_FILE} \\
                     -l ${RESULT_FILE}
@@ -52,7 +52,8 @@ pipeline {
         stage('📄 提示后续生成报告') {
             steps {
                 echo "✅ 测试结果保存在：${env.RESULT_FILE}"
-                echo "🔧 建议后续通过如下命令手动生成 HTML 报告："
+                echo "📁 报告目录（未生成 HTML 报告）预设为：${env.REPORT_DIR}"
+                echo "💡 如需生成报告，可手动执行："
                 echo "${JMETER_HOME}/jmeter -g ${env.RESULT_FILE} -o ${env.REPORT_DIR}"
             }
         }
@@ -60,10 +61,10 @@ pipeline {
 
     post {
         success {
-            echo '✅ 构建成功（低内存优化）！请手动生成报告或集成另一个报告任务。'
+            echo '✅ 构建成功！'
         }
         failure {
-            echo '❌ 构建失败，请检查日志或配置。'
+            echo '❌ 构建失败，请检查是否为内存不足或 JMX 脚本错误。'
         }
     }
 }
