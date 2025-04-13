@@ -113,3 +113,4 @@ git commit -m "检查CICD流程是否正常"
 git push
 ```
 
+==========若没有自动构建，jenkins：首次先手动构建。
