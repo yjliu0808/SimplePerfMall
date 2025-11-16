@@ -65,7 +65,7 @@ Select an item type:流水线
 - [x] **Git**
 
 Repository URL ：**git@github.com:yjliu0808/SimplePerfMall.git**
- 
+
 
 Credentials：**git (从文件读取，GitHub SSH Key for TESTCICD)**
 
@@ -126,3 +126,4 @@ jmeter -n -t D:\repository\SimplePerfMall\SimplePerfMall.jmx ^
 
 ```
 
+更新服务器
